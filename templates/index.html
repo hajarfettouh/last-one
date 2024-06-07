@@ -2,75 +2,101 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Library Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: url('https://media2.ledevoir.com/images_galerie/nwd_858459_683606/image.jpg') no-repeat center center fixed;
-            background-size: cover;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            color: white;
-            text-shadow: 1px 1px 2px black;
+        .navbar-custom {
+            background-color: #007bff; /* Bootstrap primary blue */
         }
-
-        h1 {
-            margin-bottom: 20px;
-            font-size: 36px;
+        .navbar-custom .nav-link, .navbar-custom .navbar-brand {
+            color: #fff;
+        }
+        .navbar-custom .navbar-nav {
+            flex-direction: row; /* Align items to the left */
+        }
+        .book-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px;
             text-align: center;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-            border-radius: 10px;
+            background-color: #f8f9fa;
         }
-
-        nav {
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-            border-radius: 10px;
+        .book-card img {
+            max-width: 100px;
+            margin-bottom: 10px;
         }
-
-        nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .books-grid {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-        }
-
-        nav ul li {
-            margin: 0 15px;
-        }
-
-        nav ul li a {
-            text-decoration: none;
-            color: white;
-            font-size: 18px;
-            transition: color 0.3s ease;
-        }
-
-        nav ul li a:hover {
-            color: #FFD700;
-        }
-
-        nav ul li a:active {
-            color: #FFA500;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to the Library Management System</h1>
-    <nav>
-        <ul>
-            <li><a href="/books">View Books</a></li>
-            <li><a href="/adherents/html">View Adherents</a></li>
-            <li><a href="/prets/html">View Prets</a></li>
-            <li><a href="/login">Login</a></li>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-custom" >
+    <a class="navbar-brand" href="/">EMI LIBRARY</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse ml-auto" id="navbarNav" >
+        <ul class="navbar-nav" style="margin-left: 900px">
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('adherents_page') }}{% else %}{{ url_for('login_page') }}{% endif %}">Adherents</a>
+        </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('prets') }}{% else %}{{ url_for('login_page') }}{% endif %}">Prets</a>
+            </li>
+            <li class="nav-item">
+                {% if session.get('logged_in') %}
+            <!-- Show logout button -->
+            <a class="nav-link"  href="/logout">Logout</a>
+        {% else %}
+            <!-- Show login button -->
+            <a class="nav-link"  href="/login"> Login</a>
+        {% endif %}
+            </li>
         </ul>
-    </nav>
+    </div>
+</nav>
+
+    </header>
+    <div class="main-content container">
+        <div style="margin-left: 500px">
+            <h1 class="mt-4" >Books</h1>
+        </div>
+
+        <div class="books-grid" id="books-list">
+            <!-- Book details will be added here via JavaScript -->
+        </div>
+    </div>
+    <script>
+        fetch('/api/books')
+            .then(response => response.json())
+            .then(data => {
+                const booksList = document.getElementById('books-list');
+                data.forEach(book => {
+                    const bookCard = document.createElement('div');
+                    bookCard.className = 'book-card col-md-3';
+                    bookCard.innerHTML = `
+                        <img src="${book.image_url}" alt="${book.title}">
+                        <p><strong>Title:</strong> ${book.title}</p>
+                        <p><strong>Author:</strong> ${book.author}</p>
+                        <p><strong>ISBN:</strong> ${book.isbn}</p>
+                    `;
+                    booksList.appendChild(bookCard);
+                });
+            });
+    </script>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

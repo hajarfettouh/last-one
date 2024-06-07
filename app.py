@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
+from functools import wraps
+
+from flask_login import login_required
+from BDNOSQL import authenticate_user
+
 from routes.books import books_bp
 from routes.adherents import adherents_bp
 from routes.prets import prets_bp
-from routes.auth import auth_bp
 from models.mongo_models import get_all_adherents, add_adherent, delete_all_adherents, add_pret
-
 
 app = Flask(__name__)
 
@@ -12,11 +15,12 @@ app = Flask(__name__)
 app.register_blueprint(books_bp)
 app.register_blueprint(adherents_bp)
 app.register_blueprint(prets_bp)
-app.register_blueprint(auth_bp)
+app.secret_key = '2b8e5d4f7e3c8b1a5d2f6e4c7a1b3d2e'
 
 # Route pour la page d'accueil
 @app.route('/')
 def index():
+    print(session.get('logged_in'))
     return render_template('index.html')
 
 # Route pour afficher la page HTML des livres
@@ -27,10 +31,15 @@ def books():
 # Route pour afficher les adhérents
 @app.route('/adherents/html')
 def adherents_page():
-    return render_template('adherents.html')
+    print(session.get('logged_in'))
+    if(session.get('logged_in') == True ):
+        return render_template('adherents.html')
+    else:
+        return redirect(url_for('index'))
 
 # Route pour afficher les prêts
 @app.route('/prets/html')
+@login_required
 def prets():
     return render_template('prets.html')
 
@@ -39,10 +48,6 @@ def prets():
 def login_page():
     return render_template('login.html')
 
-# Traitement de la connexion
-def authenticate_user(username, password):
-    # Add your authentication logic here
-    pass
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -50,10 +55,21 @@ def login():
     username = data['username']
     password = data['password']
     if authenticate_user(username, password):
-        return jsonify({"message": "Login successful"}), 200
+        session['username'] = username
+        session['logged_in'] = True  # Set session variable to indicate user is logged in
+        flash('Login successful', 'success')
+        return redirect(url_for('index'))
     else:
-        return jsonify({"message": "Invalid credentials"}), 401
+        flash('Invalid credentials', 'danger')
+        return redirect(url_for('login_page'))
 
+# Route pour la déconnexion
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    session['logged_in'] = False
+    flash('You have been logged out', 'success')
+    return redirect(url_for('login'))
 # Route pour obtenir tous les adhérents
 @app.route('/adherents', methods=['GET'])
 def get_adherents():

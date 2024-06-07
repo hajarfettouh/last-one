@@ -35,8 +35,14 @@ def add_user(user):
     users_collection.insert_one(user)
 
 def authenticate_user(username, password):
-    user = users_collection.find_one({"username": username, "password": password})
-    return user is not None
+    with driver.session() as session:
+        result = session.run("MATCH (u:User {username: $username, password: $password}) RETURN count(u) AS count", username=username, password=password)
+        return result.single()["count"] > 0
+def add_user(username, password):
+    with driver.session() as session:
+        session.run("CREATE (:User {username: $username, password: $password})", username=username, password=password)
+#add_user("ayman","JS5")
+#add_user("lt","nadi")
 
 def sync_book_to_neo4j(book_id):
     book = livres_collection.find_one({"_id": book_id})
@@ -72,6 +78,24 @@ def insert_example_data():
         },
         {
             "_id": "2",
+            "title": "Book Title 2",
+            "author": "Author Name 2",
+            "isbn": "ISBN0987654321"
+        },
+        {
+            "_id": "7",
+            "title": "Book Title 2",
+            "author": "Author Name 2",
+            "isbn": "ISBN0987654321"
+        },
+        {
+            "_id": "3",
+            "title": "Book Title 2",
+            "author": "Author Name 2",
+            "isbn": "ISBN0987654321"
+        },
+        {
+            "_id": "4",
             "title": "Book Title 2",
             "author": "Author Name 2",
             "isbn": "ISBN0987654321"
