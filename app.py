@@ -3,7 +3,6 @@ from functools import wraps
 
 from flask_login import login_required
 from BDNOSQL import authenticate_user
-
 from routes.books import books_bp
 from routes.adherents import adherents_bp
 from routes.prets import prets_bp

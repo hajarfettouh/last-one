@@ -4,17 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Library Management System</title>
-    <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .navbar-custom {
-            background-color: #007bff; /* Bootstrap primary blue */
+            background-color: #007bff;
         }
         .navbar-custom .nav-link, .navbar-custom .navbar-brand {
             color: #fff;
         }
         .navbar-custom .navbar-nav {
-            flex-direction: row; /* Align items to the left */
+            flex-direction: row;
         }
         .book-card {
             border: 1px solid #ddd;
@@ -38,63 +37,85 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-custom" >
-    <a class="navbar-brand" href="/">EMI LIBRARY</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse ml-auto" id="navbarNav" >
-        <ul class="navbar-nav" style="margin-left: 900px">
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('adherents_page') }}{% else %}{{ url_for('login_page') }}{% endif %}">Adherents</a>
-        </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('prets') }}{% else %}{{ url_for('login_page') }}{% endif %}">Prets</a>
-            </li>
-            <li class="nav-item">
-                {% if session.get('logged_in') %}
-            <!-- Show logout button -->
-            <a class="nav-link"  href="/logout">Logout</a>
-        {% else %}
-            <!-- Show login button -->
-            <a class="nav-link"  href="/login"> Login</a>
-        {% endif %}
-            </li>
-        </ul>
-    </div>
-</nav>
-
+        <nav class="navbar navbar-expand-lg navbar-custom">
+            <a class="navbar-brand" href="/">EMI LIBRARY</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('adherents_page') }}{% else %}{{ url_for('login_page') }}{% endif %}">Adherents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('prets') }}{% else %}{{ url_for('login_page') }}{% endif %}">Prets</a>
+                    </li>
+                    <li class="nav-item">
+                        {% if session.get('logged_in') %}
+                            <a class="nav-link" href="/logout">Logout</a>
+                        {% else %}
+                            <a class="nav-link" href="/login">Login</a>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </nav>
     </header>
     <div class="main-content container">
-        <div style="margin-left: 500px">
-            <h1 class="mt-4" >Books</h1>
+        <div class="text-center">
+            <h1 class="mt-4">Books</h1>
+            <div class="form-group">
+                <label for="authorName">Filter by Author:</label>
+                <input type="text" id="authorName" class="form-control" placeholder="Enter author name">
+                <button class="btn btn-primary mt-2" onclick="filterBooksByAuthor()">Filter</button>
+                <button class="btn btn-secondary mt-2" onclick="fetchAllBooks()">Show All Books</button>
+            </div>
         </div>
-
         <div class="books-grid" id="books-list">
-            <!-- Book details will be added here via JavaScript -->
         </div>
     </div>
     <script>
-        fetch('/api/books')
-            .then(response => response.json())
-            .then(data => {
-                const booksList = document.getElementById('books-list');
-                data.forEach(book => {
-                    const bookCard = document.createElement('div');
-                    bookCard.className = 'book-card col-md-3';
-                    bookCard.innerHTML = `
-                        <img src="${book.image_url}" alt="${book.title}">
-                        <p><strong>Title:</strong> ${book.title}</p>
-                        <p><strong>Author:</strong> ${book.author}</p>
-                        <p><strong>ISBN:</strong> ${book.isbn}</p>
-                    `;
-                    booksList.appendChild(bookCard);
+        function fetchAllBooks() {
+            fetch('/api/books')
+                .then(response => response.json())
+                .then(data => {
+                    const booksList = document.getElementById('books-list');
+                    booksList.innerHTML = '';
+                    data.forEach(book => {
+                        const bookCard = document.createElement('div');
+                        bookCard.className = 'book-card col-md-3';
+                        bookCard.innerHTML = `
+                            <img src="${book.image_url}" alt="${book.title}">
+                            <p><strong>Title:</strong> ${book.title}</p>
+                            <p><strong>ISBN:</strong> ${book.isbn}</p>
+                        `;
+                        booksList.appendChild(bookCard);
+                    });
                 });
-            });
-    </script>
+        }
 
-    <!-- Bootstrap JS and dependencies -->
+        function filterBooksByAuthor() {
+            const authorName = document.getElementById('authorName').value;
+            fetch(`/api/books?author=${encodeURIComponent(authorName)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const booksList = document.getElementById('books-list');
+                    booksList.innerHTML = '';
+                    data.forEach(book => {
+                        const bookCard = document.createElement('div');
+                        bookCard.className = 'book-card col-md-3';
+                        bookCard.innerHTML = `
+                            <img src="${book.image_url}" alt="${book.title}">
+                            <p><strong>Title:</strong> ${book.title}</p>
+                            <p><strong>Author:</strong> ${book.author}</p>
+                        `;
+                        booksList.appendChild(bookCard);
+                    });
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchAllBooks);
+    </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
